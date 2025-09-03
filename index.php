@@ -39,13 +39,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
+// Handle CSV export
 // Handle Excel export
 if (isset($_GET['export'])) {
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename=customers.csv');
 
     $output = fopen('php://output', 'w');
-    fputcsv($output, array('ID', 'Name', 'Phone', 'Branch', 'Entry Date'));
+    fputcsv($output, array(
+        'ID',
+        'Name',
+        'Phone',
+        'Branch',
+        'Branch Code',
+        'Date',
+        'Number',
+        'CardID',
+        'Entry Date'
+    ));
 
     $exportSql = "SELECT * FROM customersinfo";
     $whereClauses = [];
@@ -72,12 +83,40 @@ if (isset($_GET['export'])) {
 
     $result = $conn->query($exportSql);
     while ($row = $result->fetch_assoc()) {
-        fputcsv($output, $row);
+        // Branch Code = text before "-"
+        $branchCode = $row['branch'];
+        if (strpos($row['branch'], '-') !== false) {
+            $branchParts = explode("-", $row['branch'], 2);
+            $branchCode = $branchParts[0]; // e.g. F08
+        }
+
+        // Date code = mmyy (e.g. 0925)
+        $dateCode = date('my', strtotime($row['entryDate']));
+
+        // Number = remove ONLY the first digit of phone
+        $phoneRaw = (string) $row['phone'];
+        $number = strlen($phoneRaw) > 2 ? substr($phoneRaw, 2) : '';
+
+        // CardID = BranchCode + DateCode + Number
+        $cardId = $branchCode . $dateCode . $number;
+
+        fputcsv($output, array(
+            $row['customerId'],
+            $row['customerName'],
+            $row['phone'],
+            $row['branch'],
+            $branchCode,
+            $dateCode,
+            $number,
+            $cardId,
+            $row['entryDate']
+        ));
     }
 
     fclose($output);
     exit();
 }
+
 
 // Get search term if any
 $search = "";
@@ -212,7 +251,6 @@ $result = $conn->query($sql);
             <div class="table-container">
                 <div class="table-header">
                     <h2>Customer Records</h2>
-                    <!-- Replace the existing search form with this code -->
                     <div class="controls">
                         <form method="GET" action="" class="search-form">
                             <input type="text" name="search" placeholder="Search by name, phone, or branch"
