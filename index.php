@@ -114,7 +114,7 @@ if (isset($_GET['export'])) {
             $branchCode = $branchParts[0];
         }
         $dateCode = date('my', strtotime($row['entryDate']));
-        $phoneRaw = (string)$row['phone'];
+        $phoneRaw = (string) $row['phone'];
         $number = strlen($phoneRaw) > 2 ? substr($phoneRaw, 2) : '';
         $cardId = $branchCode . $dateCode . $number;
 
@@ -164,8 +164,10 @@ $countResult = $conn->query($countSql);
 $totalRecords = $countResult->fetch_assoc()['total'];
 $totalPages = ceil($totalRecords / $records_per_page);
 
-if ($page < 1) $page = 1;
-if ($page > $totalPages && $totalPages > 0) $page = $totalPages;
+if ($page < 1)
+    $page = 1;
+if ($page > $totalPages && $totalPages > 0)
+    $page = $totalPages;
 
 $sql = "SELECT * FROM customersinfo";
 if (!empty($whereClauses)) {
@@ -177,158 +179,277 @@ $result = $conn->query($sql);
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Management System</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Fashion Optics Loyalty Customer Management System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-size: 0.875rem;
+            background-color: #f8f9fa;
+        }
+
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 1rem;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.5rem;
+        }
+
+        .form-label {
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+
+        .btn-sm {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .pagination {
+            margin-bottom: 0.5rem;
+        }
+
+        .search-section {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>Customer Management System</h1>
-
-        <div class="content-wrapper">
-            <!-- Left side: Input Form -->
-            <div class="form-container">
-                <h2>Add New Customer</h2>
-                <form id="customerForm" method="POST">
-                    <div class="form-group">
-                        <label for="customerName">Customer Name:</label>
-                        <input type="text" id="customerName" name="customerName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">Phone Number:</label>
-                        <input type="text" id="phone" name="phone" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="branch">Branch:</label>
-                        <select id="branch" name="branch" required>
-                            <option value="">-- Select Branch --</option>
-                            <option value="F01-Fashion Optics Ltd.">F01-Fashion Optics Ltd.</option>
-                            <option value="F02-FEHL">F02-FEHL</option>
-                            <option value="F03-Gulshan-2">F03-Gulshan-2</option>
-                            <option value="F04-Gulshan-1">F04-Gulshan-1</option>
-                            <option value="F05-Uttara">F05-Uttara</option>
-                            <option value="F06-Mogbazar">F06-Mogbazar</option>
-                            <option value="F07-DSMR">F07-DSMR</option>
-                            <option value="F08-Mirpur-12">F08-Mirpur-12</option>
-                            <option value="F09-Jamal Khan CTG">F09-Jamal Khan CTG</option>
-                            <option value="F10-Ego Vission">F10-Ego Vission</option>
-                            <option value="F11-Elephant Road">F11-Elephant Road</option>
-                            <option value="F12-New Market">F12-New Market</option>
-                            <option value="F13-Patuatuly">F13-Patuatuly</option>
-                            <option value="F14-Hira Panna Hospital">F14-Hira Panna Hospital</option>
-                            <option value="F15-HPHS">F15-HPHS</option>
-                            <option value="F16-Unimart">F16-Unimart</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="entryDate">Entry Date:</label>
-                        <input type="date" id="entryDate" name="entryDate" value="<?php echo date('Y-m-d'); ?>" required>
-                    </div>
-                    <button type="submit">Add Customer</button>
-                </form>
+    <div class="container-fluid py-2">
+        <div class="row">
+            <div class="col-12 d-flex align-items-center justify-content-between shadow p-3 mb-5 bg-white rounded">
+                <div>
+                    <img src="logo.png" alt="Fashion Optics Ltd." class="img-fluid" style="max-height: 50px;">
+                </div>
+                <div>
+                    <h1 class="h4 mb-0"
+                        style="color: #CD2128; font-family: 'Playfair Display', serif; font-weight: 800; letter-spacing: 0.5px;">
+                        Loyalty Customer Management System</h1>
+                </div>
             </div>
+        </div>
 
-            <!-- Right side: Data Table -->
-            <div class="table-container">
-                <div class="table-header">
-                    <h2>Customer Records</h2>
-                    <div class="controls">
-                        <form method="GET" action="" class="search-form">
-                            <input type="text" name="search" placeholder="Search by name, phone, or branch"
-                                value="<?php echo htmlspecialchars($search); ?>">
-                            <div class="date-filter-row">
-                                <label for="startDate">From:</label>
-                                <input type="date" id="startDate" name="startDate" value="<?php echo htmlspecialchars($startDate); ?>">
-                                <label for="endDate">To:</label>
-                                <input type="date" id="endDate" name="endDate" value="<?php echo htmlspecialchars($endDate); ?>">
+        <div class="row">
+            <!-- Left side: Input Form -->
+            <div class="col-lg-4 mb-3">
+                <div class="card">
+                    <div class="card-header bg-light py-2">
+                        <h5 class="mb-0">Add New Customer</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="customerForm" method="POST">
+                            <div class="mb-2">
+                                <label for="customerName" class="form-label">Customer Name:</label>
+                                <input type="text" class="form-control form-control-sm" id="customerName"
+                                    name="customerName" required>
                             </div>
-                            <div class="button-row">
-                                <button type="submit">Search</button>
-                                <a href="index.php" class="reset-btn">Reset</a>
-                                <a href="?export=1&search=<?php echo urlencode($search); ?>&startDate=<?php echo urlencode($startDate); ?>&endDate=<?php echo urlencode($endDate); ?>" class="download-btn">Download Excel</a>
+                            <div class="mb-2">
+                                <label for="phone" class="form-label">Phone Number:</label>
+                                <input type="text" class="form-control form-control-sm" id="phone" name="phone"
+                                    required>
                             </div>
+                            <div class="mb-2">
+                                <label for="branch" class="form-label">Branch:</label>
+                                <select class="form-select form-select-sm" id="branch" name="branch" required>
+                                    <option value="">-- Select Branch --</option>
+                                    <option value="F01-Fashion Optics Ltd.">F01-Fashion Optics Ltd.</option>
+                                    <option value="F02-FEHL">F02-FEHL</option>
+                                    <option value="F03-Gulshan-2">F03-Gulshan-2</option>
+                                    <option value="F04-Gulshan-1">F04-Gulshan-1</option>
+                                    <option value="F05-Uttara">F05-Uttara</option>
+                                    <option value="F06-Mogbazar">F06-Mogbazar</option>
+                                    <option value="F07-DSMR">F07-DSMR</option>
+                                    <option value="F08-Mirpur-12">F08-Mirpur-12</option>
+                                    <option value="F09-Jamal Khan CTG">F09-Jamal Khan CTG</option>
+                                    <option value="F10-Ego Vission">F10-Ego Vission</option>
+                                    <option value="F11-Elephant Road">F11-Elephant Road</option>
+                                    <option value="F12-New Market">F12-New Market</option>
+                                    <option value="F13-Patuatuly">F13-Patuatuly</option>
+                                    <option value="F14-Hira Panna Hospital">F14-Hira Panna Hospital</option>
+                                    <option value="F15-HPHS">F15-HPHS</option>
+                                    <option value="F16-Unimart">F16-Unimart</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="entryDate" class="form-label">Entry Date:</label>
+                                <input type="date" class="form-control form-control-sm" id="entryDate" name="entryDate"
+                                    value="<?php echo date('Y-m-d'); ?>" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm w-100">Add Customer</button>
                         </form>
                     </div>
                 </div>
+            </div>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Phone</th>
-                            <th>Branch</th>
-                            <th>Entry Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if ($result->num_rows > 0): ?>
-                            <?php while ($row = $result->fetch_assoc()): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($row['customerName']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['phone']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['branch']); ?></td>
-                                    <td><?php echo $row['entryDate']; ?></td>
-                                </tr>
-                            <?php endwhile; ?>
-                        <?php else: ?>
-                            <tr><td colspan="4">No customers found</td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+            <!-- Right side: Data Table -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-light py-2 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Customer Records</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="search-section mb-3">
+                            <form method="GET" action="">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-md-4">
+                                        <label for="search" class="form-label">Search:</label>
+                                        <input type="text" class="form-control form-control-sm" name="search"
+                                            placeholder="Name, phone, or branch"
+                                            value="<?php echo htmlspecialchars($search); ?>">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="startDate" class="form-label">From:</label>
+                                        <input type="date" class="form-control form-control-sm" id="startDate"
+                                            name="startDate" value="<?php echo htmlspecialchars($startDate); ?>">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="endDate" class="form-label">To:</label>
+                                        <input type="date" class="form-control form-control-sm" id="endDate"
+                                            name="endDate" value="<?php echo htmlspecialchars($endDate); ?>">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-primary btn-sm w-100">Search</button>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-md-6">
+                                        <a href="index.php" class="btn btn-secondary btn-sm">Reset</a>
+                                        <a href="?export=1&search=<?php echo urlencode($search); ?>&startDate=<?php echo urlencode($startDate); ?>&endDate=<?php echo urlencode($endDate); ?>"
+                                            class="btn btn-success btn-sm">
+                                            <i class="bi bi-download me-1"></i>Export CSV
+                                        </a>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
 
-                <!-- Pagination -->
-                <?php if ($totalPages > 1): ?>
-                    <div class="pagination">
-                        <?php if ($page > 1): ?>
-                            <a href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>&startDate=<?php echo urlencode($startDate); ?>&endDate=<?php echo urlencode($endDate); ?>">Previous</a>
-                        <?php endif; ?>
-                        <?php if ($page < $totalPages): ?>
-                            <a href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>&startDate=<?php echo urlencode($startDate); ?>&endDate=<?php echo urlencode($endDate); ?>">Next</a>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover table-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Phone</th>
+                                        <th>Branch</th>
+                                        <th>Entry Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if ($result->num_rows > 0): ?>
+                                        <?php while ($row = $result->fetch_assoc()): ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($row['customerName']); ?></td>
+                                                <td><?php echo htmlspecialchars($row['phone']); ?></td>
+                                                <td><?php echo htmlspecialchars($row['branch']); ?></td>
+                                                <td><?php echo $row['entryDate']; ?></td>
+                                            </tr>
+                                        <?php endwhile; ?>
+                                    <?php else: ?>
+                                        <tr>
+                                            <td colspan="4" class="text-center py-3">No customers found</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <?php if ($totalPages > 1): ?>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-muted small">
+                                    Showing page <?php echo $page; ?> of <?php echo $totalPages; ?> | Total Records:
+                                    <?php echo $totalRecords; ?>
+                                </div>
+                                <nav>
+                                    <ul class="pagination pagination-sm mb-0">
+                                        <?php if ($page > 1): ?>
+                                            <li class="page-item">
+                                                <a class="page-link"
+                                                    href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>&startDate=<?php echo urlencode($startDate); ?>&endDate=<?php echo urlencode($endDate); ?>">Previous</a>
+                                            </li>
+                                        <?php endif; ?>
+                                        <?php if ($page < $totalPages): ?>
+                                            <li class="page-item">
+                                                <a class="page-link"
+                                                    href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>&startDate=<?php echo urlencode($startDate); ?>&endDate=<?php echo urlencode($endDate); ?>">Next</a>
+                                            </li>
+                                        <?php endif; ?>
+                                    </ul>
+                                </nav>
+                            </div>
                         <?php endif; ?>
                     </div>
-                    <div class="pagination-info">
-                        Page <?php echo $page; ?> of <?php echo $totalPages; ?> | Total Records: <?php echo $totalRecords; ?>
-                    </div>
-                <?php endif; ?>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-    document.getElementById("customerForm").addEventListener("submit", function(e) {
-        e.preventDefault();
-        const form = this;
-        const formData = new FormData(form);
+    <footer class="bg-light py-3 mt-4 shadow-sm" style="box-shadow: 0 -2px 10px rgba(0,0,0,0.1) !important;">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-1 small">All right received <a href="https://fashionoptics.store/en"
+                            class="text-decoration-none fw-bold" style="color: #CD2128;">Fashion Optics Ltd.</a></p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="mb-0 small">Develop by <a href="https://mdanaskhan.vercel.app"
+                            class="text-decoration-none fw-bold" style="color: #6321cdff;">Fashion Group IT</a></p>
+                </div>
+            </div>
+        </div>
+    </footer>
 
-        fetch("", { method: "POST", body: formData })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === "phone_exists") {
-                    if (confirm(`Phone already exists for ${data.customer.customerName}. Do you want to save anyway?`)) {
-                        formData.append("forceSave", "1");
-                        fetch("", { method: "POST", body: formData })
-                            .then(r => r.json())
-                            .then(d => {
-                                alert(d.message);
-                                if (d.status === "success") form.reset();
-                                location.reload();
-                            });
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.getElementById("customerForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const form = this;
+            const formData = new FormData(form);
+
+            fetch("", { method: "POST", body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === "phone_exists") {
+                        if (confirm(`Phone already exists for ${data.customer.customerName}. Do you want to save anyway?`)) {
+                            formData.append("forceSave", "1");
+                            fetch("", { method: "POST", body: formData })
+                                .then(r => r.json())
+                                .then(d => {
+                                    alert(d.message);
+                                    if (d.status === "success") form.reset();
+                                    location.reload();
+                                });
+                        } else {
+                            form.reset();
+                        }
                     } else {
-                        form.reset();
+                        alert(data.message);
+                        if (data.status === "success") {
+                            form.reset();
+                            location.reload();
+                        }
                     }
-                } else {
-                    alert(data.message);
-                    if (data.status === "success") {
-                        form.reset();
-                        location.reload();
-                    }
-                }
-            });
-    });
+                });
+        });
     </script>
 </body>
+
 </html>
 
 <?php $conn->close(); ?>
