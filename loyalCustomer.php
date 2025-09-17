@@ -263,6 +263,7 @@ $result = $conn->query($sql);
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
                             <li><a class="dropdown-item" href="changePassword.php">Change Password</a></li>
                             <li><a class="dropdown-item" href="logout.php">Logout</a></li>
+                            <li><a class="dropdown-item" href="downloadDatabase.php">Download Database (SQL)</a></li>
                         </ul>
                     </div>
                 </div>
