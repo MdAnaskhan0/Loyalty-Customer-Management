@@ -50,10 +50,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $phoneResult = $conn->query($phoneCheckSql);
 
     if ($phoneResult->num_rows > 0 && !$forceSave) {
-        $existing = $phoneResult->fetch_assoc();
+        $existingCustomers = [];
+        while ($row = $phoneResult->fetch_assoc()) {
+            $existingCustomers[] = $row;
+        }
         echo json_encode([
             "status" => "phone_exists",
-            "customer" => $existing
+            "customers" => $existingCustomers
         ]);
         exit();
     }
@@ -184,6 +187,9 @@ if (!empty($whereClauses)) {
 }
 $sql .= " ORDER BY customerId DESC LIMIT $offset, $records_per_page";
 $result = $conn->query($sql);
+
+// Set default date to previous day
+$defaultDate = date('Y-m-d', strtotime('-1 day'));
 ?>
 
 <!DOCTYPE html>
@@ -234,6 +240,11 @@ $result = $conn->query($sql);
             padding: 1rem;
             border-radius: 0.375rem;
             margin-bottom: 1rem;
+        }
+        
+        .modal-customer-list {
+            max-height: 300px;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -315,7 +326,7 @@ $result = $conn->query($sql);
                             <div class="mb-3">
                                 <label for="entryDate" class="form-label">Entry Date:</label>
                                 <input type="date" class="form-control form-control-sm" id="entryDate" name="entryDate"
-                                    value="<?php echo date('Y-m-d'); ?>" required>
+                                    value="<?php echo $defaultDate; ?>" required>
                             </div>
                             <button type="submit" class="btn btn-primary btn-sm w-100">Add Customer</button>
                         </form>
@@ -429,16 +440,50 @@ $result = $conn->query($sql);
         <div class="container">
             <div class="row">
                 <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-1 small">All right received <a href="https://fashionoptics.store/en"
+                    <p class="mb-1 small">All right received <a href="https://fashionoptics.store/en" target="_blank"
                             class="text-decoration-none fw-bold" style="color: #CD2128;">Fashion Optics Ltd.</a></p>
                 </div>
                 <div class="col-md-6 text-center text-md-end">
-                    <p class="mb-0 small">Develop by <a href="https://mdanaskhan.vercel.app"
+                    <p class="mb-0 small">Develop by <a href="https://mdanaskhan.vercel.app" target="_blank"
                             class="text-decoration-none fw-bold" style="color: #6321cdff;">Fashion Group IT</a></p>
                 </div>
             </div>
         </div>
     </footer>
+
+    <!-- Modal for showing duplicate phone numbers -->
+    <div class="modal fade" id="duplicateModal" tabindex="-1" aria-labelledby="duplicateModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="duplicateModalLabel">Phone Number Already Exists</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>This phone number is already registered for the following customers:</p>
+                    <div class="modal-customer-list">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Branch</th>
+                                    <th>Entry Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="duplicateCustomersList">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="mt-2">Do you want to save anyway?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="forceSaveBtn">Save Anyway</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
@@ -453,18 +498,36 @@ $result = $conn->query($sql);
                 .then(res => res.json())
                 .then(data => {
                     if (data.status === "phone_exists") {
-                        if (confirm(`Phone already exists for ${data.customer.customerName}. Do you want to save anyway?`)) {
+                        // Populate the modal with all customers having the same phone number
+                        const customersList = document.getElementById('duplicateCustomersList');
+                        customersList.innerHTML = '';
+                        
+                        data.customers.forEach(customer => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${customer.customerName}</td>
+                                <td>${customer.branch}</td>
+                                <td>${customer.entryDate}</td>
+                            `;
+                            customersList.appendChild(row);
+                        });
+                        
+                        // Show the modal
+                        const duplicateModal = new bootstrap.Modal(document.getElementById('duplicateModal'));
+                        duplicateModal.show();
+                        
+                        // Set up the force save button
+                        document.getElementById('forceSaveBtn').onclick = function() {
                             formData.append("forceSave", "1");
                             fetch("", { method: "POST", body: formData })
                                 .then(r => r.json())
                                 .then(d => {
                                     alert(d.message);
                                     if (d.status === "success") form.reset();
+                                    duplicateModal.hide();
                                     location.reload();
                                 });
-                        } else {
-                            form.reset();
-                        }
+                        };
                     } else {
                         alert(data.message);
                         if (data.status === "success") {
