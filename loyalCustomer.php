@@ -62,6 +62,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // Insert new customer
+    $customerName = ucwords(strtolower(trim($customerName)));
     $insertSql = "INSERT INTO customersinfo (customerName, phone, branch, entryDate) 
                   VALUES ('$customerName', '$phone', '$branch', '$entryDate')";
 
