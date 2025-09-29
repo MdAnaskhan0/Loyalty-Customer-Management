@@ -242,7 +242,7 @@ $defaultDate = date('Y-m-d', strtotime('-1 day'));
             border-radius: 0.375rem;
             margin-bottom: 1rem;
         }
-        
+
         .modal-customer-list {
             max-height: 300px;
             overflow-y: auto;
@@ -440,13 +440,16 @@ $defaultDate = date('Y-m-d', strtotime('-1 day'));
     <footer class="bg-light py-3 mt-4 shadow-sm" style="box-shadow: 0 -2px 10px rgba(0,0,0,0.1) !important;">
         <div class="container">
             <div class="row">
-                <div class="col-md-6 text-center text-md-start">
-                    <p class="mb-1 small">All right received <a href="https://fashionoptics.store/en" target="_blank"
-                            class="text-decoration-none fw-bold" style="color: #CD2128;">Fashion Optics Ltd.</a></p>
+                <div class="col-md-5 text-center text-md-start">
+                    <p class="mb-1 small">All rights reserved <a href="https://fashionoptics.store/en" target="_blank"
+                            class="text-decoration-none fw-bold" style="color: #CD2128;"> Fashion Optics Ltd. </a> </p>
                 </div>
-                <div class="col-md-6 text-center text-md-end">
-                    <p class="mb-0 small">Develop by <a href="https://mdanaskhan.vercel.app" target="_blank"
-                            class="text-decoration-none fw-bold" style="color: #6321cdff;">Fashion Group IT</a></p>
+                <div class="col-md-4 text-center text-md-start">
+                    <p id="dateTime" class="mb-1 small fw-semibold"></p>
+                </div>
+                <div class="col-md-3 text-center text-md-end">
+                    <p class="mb-0 small">Developed by <a href="https://mdanaskhan.vercel.app" target="_blank"
+                            class="text-decoration-none fw-bold" style="color: #6321cdff;"> Fashion Group IT </a> </p>
                 </div>
             </div>
         </div>
@@ -502,7 +505,7 @@ $defaultDate = date('Y-m-d', strtotime('-1 day'));
                         // Populate the modal with all customers having the same phone number
                         const customersList = document.getElementById('duplicateCustomersList');
                         customersList.innerHTML = '';
-                        
+
                         data.customers.forEach(customer => {
                             const row = document.createElement('tr');
                             row.innerHTML = `
@@ -512,13 +515,13 @@ $defaultDate = date('Y-m-d', strtotime('-1 day'));
                             `;
                             customersList.appendChild(row);
                         });
-                        
+
                         // Show the modal
                         const duplicateModal = new bootstrap.Modal(document.getElementById('duplicateModal'));
                         duplicateModal.show();
-                        
+
                         // Set up the force save button
-                        document.getElementById('forceSaveBtn').onclick = function() {
+                        document.getElementById('forceSaveBtn').onclick = function () {
                             formData.append("forceSave", "1");
                             fetch("", { method: "POST", body: formData })
                                 .then(r => r.json())
@@ -538,6 +541,14 @@ $defaultDate = date('Y-m-d', strtotime('-1 day'));
                     }
                 });
         });
+
+        function updateDateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            document.getElementById("dateTime").textContent = now.toLocaleDateString('en-US', options);
+        }
+        // Call immediately + update every second 
+        updateDateTime(); setInterval(updateDateTime, 1000);
     </script>
 </body>
 
